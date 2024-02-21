@@ -1,99 +1,55 @@
 package main
 
 import (
-	"errors"
+	"encoding/json"
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
-	"os"
 	"regexp"
+    "go-sql-driver/mysql"
 )
 
-type Page struct {
-    Title string
-    Body  []byte
+type Sequence struct {
+    name string
+    notation [8][16]string
 }
 
-func (p *Page) save() error {
-    filename := p.Title + ".txt"
-    return os.WriteFile(filename, p.Body, 0600)
+func (s *Sequence) save() {
+    fmt.Printf("Save sequence \n")
 }
 
-var templates = template.Must(template.ParseFiles("edit.html", "view.html"))
+db, err := sql.Open("mysql", "root@localhost:3306@/sequencer-2024")
+if err != nil {
+	panic(err)
+}
+// See "Important settings" section.
+db.SetConnMaxLifetime(time.Minute * 3)
+db.SetMaxOpenConns(10)
+db.SetMaxIdleConns(10)
+
 var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
 
-func getTitle(w http.ResponseWriter, r *http.Request) (string, error) {
-    m := validPath.FindStringSubmatch(r.URL.Path)
-    if m == nil {
-        http.NotFound(w, r)
-        return "", errors.New("invalid Page Title")
-    }
-    return m[2], nil // The title is the second subexpression.
-}
+func saveSequenceHandler(w http.ResponseWriter, r *http.Request) {
+    name := r.URL.Path[len("/sequence/save/"):]
 
-func handler(w http.ResponseWriter, r *http.Request) {
-    fmt.Fprintf(w, "Hi there, I love %s!", r.URL.Path[1:])
-}
-
-func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
-    return func(w http.ResponseWriter, r *http.Request) {
-        m := validPath.FindStringSubmatch(r.URL.Path)
-        if m == nil {
-            http.NotFound(w, r)
-            return
-        }
-        fn(w, r, m[2])
-    }
-}
-
-func loadPage(title string) (*Page, error) {
-    filename := title + ".txt"
-    body, err := os.ReadFile(filename)
+    var notation [8][16]string
+    err := json.NewDecoder(r.Body).Decode(&notation)
     if err != nil {
-        return nil, err
-    }
-    return &Page{Title: title, Body: body}, nil
-}
-
-func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
-    err := templates.ExecuteTemplate(w, tmpl+".html", p)
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-    }
-}
-
-func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
-    p, err := loadPage(title)
-    if err != nil {
-        http.Redirect(w, r, "/edit/"+title, http.StatusFound)
+        http.Error(w, "Error decoding request body", http.StatusBadRequest)
         return
     }
-    renderTemplate(w, "view", p)
+
+    seq := &Sequence{name: name, notation: notation}
+    seq.save()
+    fmt.Printf("Save log: %s", name)
 }
 
-func editHandler(w http.ResponseWriter, r *http.Request, title string) {
-    p, err := loadPage(title)
-    if err != nil {
-        p = &Page{Title: title}
-    }
-    renderTemplate(w, "edit", p)
-}
-
-func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
-    body := r.FormValue("body")
-    p := &Page{Title: title, Body: []byte(body)}
-    err := p.save()
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-        return
-    }
-    http.Redirect(w, r, "/view/"+title, http.StatusFound)
+func testHandler(w http.ResponseWriter, r *http.Request) {
+    fmt.Printf("Test log")
 }
 
 func main() {
-	http.HandleFunc("/view/", makeHandler(viewHandler))
-    http.HandleFunc("/edit/", makeHandler(editHandler))
-    http.HandleFunc("/save/", makeHandler(saveHandler))
+    http.HandleFunc("/test/", testHandler)
+    http.HandleFunc("/sequence/save/", saveSequenceHandler)
     log.Fatal(http.ListenAndServe(":8080", nil))
 }
