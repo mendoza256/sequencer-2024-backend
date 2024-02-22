@@ -1,55 +1,74 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
-	"regexp"
-    "go-sql-driver/mysql"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
+type User struct {
+    gorm.Model
+    Name string
+    Id int
+    Email string
+    Sequences []Sequence
+  }
+
 type Sequence struct {
-    name string
-    notation [8][16]string
+    gorm.Model
+    Name string
+    Id int
+    Notation [8][16]string
+    User User
 }
 
-func (s *Sequence) save() {
-    fmt.Printf("Save sequence \n")
-}
 
-db, err := sql.Open("mysql", "root@localhost:3306@/sequencer-2024")
-if err != nil {
-	panic(err)
-}
-// See "Important settings" section.
-db.SetConnMaxLifetime(time.Minute * 3)
-db.SetMaxOpenConns(10)
-db.SetMaxIdleConns(10)
+func initDb() {
+    dsn := "root:couk-iw-slih-GHAI-maff@tcp(127.0.0.1:3306)/sequencer-2024?charset=utf8mb4&parseTime=True&loc=Local"
+    db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
-var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
-
-func saveSequenceHandler(w http.ResponseWriter, r *http.Request) {
-    name := r.URL.Path[len("/sequence/save/"):]
-
-    var notation [8][16]string
-    err := json.NewDecoder(r.Body).Decode(&notation)
     if err != nil {
-        http.Error(w, "Error decoding request body", http.StatusBadRequest)
+      panic("failed to connect database")
+    }
+
+    fmt.Printf("Successfully connected to the database\n")
+    fmt.Printf("Database memory address: %p", db)
+}
+
+func testHandler(c *gin.Context) {
+    c.JSON(http.StatusOK, gin.H{
+        "message": "Hello, World!",
+    })
+}
+
+// save a sequence to the database
+func saveSequenceHandler(c *gin.Context) {
+    var sequence Sequence
+    err := c.BindJSON(&sequence)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{
+            "error": err.Error(),
+        })
         return
     }
 
-    seq := &Sequence{name: name, notation: notation}
-    seq.save()
-    fmt.Printf("Save log: %s", name)
+    fmt.Println(sequence)
+    c.JSON(http.StatusOK, gin.H{
+        "message": "Sequence saved successfully",
+    })
 }
 
-func testHandler(w http.ResponseWriter, r *http.Request) {
-    fmt.Printf("Test log")
-}
+
+
 
 func main() {
-    http.HandleFunc("/test/", testHandler)
-    http.HandleFunc("/sequence/save/", saveSequenceHandler)
-    log.Fatal(http.ListenAndServe(":8080", nil))
+    initDb()
+    router := gin.Default()
+    router.GET("/sequence/test/", testHandler)
+    router.POST(("/sequence/save/"), saveSequenceHandler)
+
+    router.Run(":8080")
 }
