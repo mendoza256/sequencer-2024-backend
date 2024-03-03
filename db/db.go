@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/joho/godotenv"
 	"github.com/mendoza256/sequencer-2024-backend/models"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -18,6 +19,7 @@ var (
 )
 
 func getEnv() {
+    godotenv.Load(".env")
     db_user = os.Getenv("DB_USER")
     db_pass = os.Getenv("DB_PASS")
     db_host = os.Getenv("DB_HOST")
@@ -25,8 +27,7 @@ func getEnv() {
 }
 
 func InitDb() {
-	getEnv()
-    fmt.Printf("%v:%v@tcp(%v)/%v?charset=utf8mb4&parseTime=True&loc=Local", db_user, db_pass, db_host, db_name)
+    getEnv()
     var err error
     dsn := fmt.Sprintf("%v:%v@tcp(%v)/%v?charset=utf8mb4&parseTime=True&loc=Local", db_user, db_pass, db_host, db_name)
     DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
