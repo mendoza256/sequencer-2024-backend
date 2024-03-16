@@ -3,6 +3,7 @@ module github.com/mendoza256/sequencer-2024-backend
 go 1.22.0
 
 require (
+<<<<<<< Updated upstream
 	github.com/coreos/go-oidc v2.2.1+incompatible
 	github.com/coreos/go-oidc/v3 v3.9.0
 	github.com/gin-contrib/sessions v0.0.5
@@ -10,12 +11,19 @@ require (
 	github.com/joho/godotenv v1.5.1
 	golang.org/x/crypto v0.21.0
 	golang.org/x/oauth2 v0.18.0
+=======
+	github.com/gin-contrib/cors v1.7.0
+	github.com/gin-gonic/gin v1.9.1
+	github.com/gofor-little/env v1.0.16
+	github.com/joho/godotenv v1.5.1
+	golang.org/x/crypto v0.21.0
+>>>>>>> Stashed changes
 	gorm.io/driver/mysql v1.5.4
 	gorm.io/gorm v1.25.7
 )
 
 require (
-	github.com/bytedance/sonic v1.11.0 // indirect
+	github.com/bytedance/sonic v1.11.2 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
 	github.com/chenzhuoyu/iasm v0.9.1 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
@@ -23,7 +31,7 @@ require (
 	github.com/go-jose/go-jose/v3 v3.0.1 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-playground/validator/v10 v10.18.0 // indirect
+	github.com/go-playground/validator/v10 v10.19.0 // indirect
 	github.com/go-sql-driver/mysql v1.7.1 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
@@ -47,8 +55,12 @@ require (
 	golang.org/x/net v0.22.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
+<<<<<<< Updated upstream
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/protobuf v1.32.0 // indirect
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
+=======
+	google.golang.org/protobuf v1.33.0 // indirect
+>>>>>>> Stashed changes
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

@@ -1,11 +1,17 @@
 package main
 
 import (
+<<<<<<< Updated upstream
 	"encoding/gob"
 	"log"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
+=======
+	"time"
+
+	"github.com/gin-contrib/cors"
+>>>>>>> Stashed changes
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/mendoza256/sequencer-2024-backend/controllers"
@@ -21,6 +27,7 @@ func main() {
 	}
 
     router := gin.Default()
+<<<<<<< Updated upstream
 
     // To store custom types in our cookies,
 	// we must first register them using gob.Register
@@ -37,6 +44,21 @@ func main() {
 	router.GET("/callback", controllers.LoginHandler(auth))
 	router.GET("/logout", controllers.LogoutHandler)
     router.GET("/user", middleware.IsAuthenticated, controllers.UserHandler)
+=======
+    router.Use(cors.New(cors.Config{
+        AllowOrigins:     []string{"http://localhost:5173/"},
+        AllowMethods:     []string{"PUT", "PATCH"},
+        AllowHeaders:     []string{"Origin"},
+        ExposeHeaders:    []string{"Content-Length"},
+        AllowCredentials: true,
+        AllowOriginFunc: func(origin string) bool {
+          return origin == "http://localhost:5173/"
+        },
+        MaxAge: 12 * time.Hour,
+      }))
+    router.POST("/save-sequence", controllers.SaveSequenceHandler)
+    router.GET("/get-user-sequences", controllers.GetUserSequencesHandler)
+>>>>>>> Stashed changes
 
     router.Run(":8080")
 }
