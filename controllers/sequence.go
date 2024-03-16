@@ -39,7 +39,38 @@ func GetUserSequencesHandler(c *gin.Context) {
 
 func SaveSequenceHandler(c *gin.Context) {
     var sequence models.Sequence
-    err := c.BindJSON(&sequence)
+
+	// check if user has more than 10 sequences
+	var user models.User
+	err := c.BindJSON(&user)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	if db.DB != nil {
+		var sequences []models.Sequence
+		result := db.DB.Where("user_id = ?", user.ID).Find(&sequences)
+		if result.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": result.Error.Error(),
+			})
+			return
+		}
+		if len(sequences) >= 10 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "User has reached the maximum number of sequences",
+			})
+			return
+		}
+	} else {
+		fmt.Println("db is nil")
+	}
+
+
+	err = c.BindJSON(&sequence)
     if err != nil {
         c.JSON(http.StatusBadRequest, gin.H{
             "error": err.Error(),
